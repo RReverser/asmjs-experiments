@@ -1,0 +1,4 @@
+[package]
+authors = ["Ingvar Stepanyan <me@rreverser.com>"]
+name = "asmjs"
+version = "0.1.0"
