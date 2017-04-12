@@ -21,7 +21,7 @@ pub type CStr = *const u8;
 extern {
     fn _embind_register_void(type_id: TypeId, name: CStr);
     fn _embind_register_bool(type_id: TypeId, name: CStr, size: usize, true_value: bool, false_value: bool);
-    fn _embind_register_integer(type_id: TypeId, name: CStr, size: usize, minRange: i32, maxRange: u32);
+    fn _embind_register_integer(type_id: TypeId, name: CStr, size: usize, minRange: isize, maxRange: usize);
     fn _embind_register_float(type_id: TypeId, name: CStr, size: usize);
 
     fn _embind_register_rust_string(type_id: TypeId);
@@ -39,14 +39,37 @@ extern {
     fn _emval_set_property(obj: Emval, prop: Emval, value: Emval);
 }
 
-macro_rules! embindable {
+macro_rules! em_to_js {
     ($ty:ty) => {
-        impl Into<Val> for $ty {
-            fn into(self) -> Val {
-                Val::new(self)
+        impl From<$ty> for Val {
+            fn from(value: $ty) -> Self {
+                Val::new(value)
             }
         }
     }
+}
+
+macro_rules! em_from_js {
+    ($ty:ty) => {
+        impl From<Val> for $ty {
+            fn from(value: Val) -> $ty {
+                extern {
+                    fn _emval_as(value: Emval, type_id: TypeId, destructors: *const void) -> $ty;
+                }
+
+                unsafe {
+                    _emval_as(value.0, type_id::<$ty>(), 0 as _)
+                }
+            }
+        }
+    }
+}
+
+macro_rules! em_js {
+    ($ty: ty) => {{
+        em_from_js!($ty);
+        em_to_js!($ty);
+    }}
 }
 
 pub struct Val(Emval);
@@ -79,7 +102,7 @@ impl Val {
 
             macro_rules! register_int {
                 ($name:ident) => {{
-                    embindable!($name);
+                    em_js!($name);
                     _embind_register_integer(type_id::<$name>(), concat!(stringify!($name), "\0").as_ptr(), size_of::<$name>(), ::std::$name::MIN as _, ::std::$name::MAX as _);
                 }}
             }
@@ -95,7 +118,7 @@ impl Val {
 
             macro_rules! register_float {
                 ($name:ident) => {{
-                    embindable!($name);
+                    em_js!($name);
                     _embind_register_float(type_id::<$name>(), concat!(stringify!($name), "\0").as_ptr(), size_of::<$name>());
                 }}
             }
@@ -103,7 +126,7 @@ impl Val {
             register_float!(f32);
             register_float!(f64);
 
-            embindable!(&'static str);
+            em_to_js!(&'static str);
             _embind_register_rust_string(type_id::<&'static str>());
         }
     }

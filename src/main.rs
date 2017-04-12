@@ -122,4 +122,5 @@ fn main() {
 
     Val::global().set("answer", "hello, world");
     Val::global().set("smth", true);
+    println!("{}", usize::from(Val::global().get("navigator").get("plugins").get("length")));
 }
