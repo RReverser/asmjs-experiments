@@ -120,5 +120,5 @@ fn main() {
 
     Val::register();
 
-    Val::global(b"window\0".as_ptr()).set(b"answer\0".as_ptr(), Val::new(&"hello, world"));
+    Val::global().set("answer", "hello, world");
 }
