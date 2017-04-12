@@ -1,13 +1,6 @@
-use std::ops::{Index, IndexMut};
 use std::os::raw::c_void as void;
 use std::intrinsics;
 use std::mem::size_of;
-use std::ffi::CString;
-
-const UNDEFINED: usize = 1;
-const NULL: usize = 2;
-const TRUE: usize = 3;
-const FALSE: usize = 4;
 
 pub type TypeId = i32;
 
@@ -18,7 +11,7 @@ pub fn type_id<T: ?Sized + 'static>() -> TypeId {
 }
 
 #[repr(C)]
-struct EmvalStruct(void);
+pub struct EmvalStruct(void);
 
 pub type Emval = *mut EmvalStruct;
 
@@ -63,7 +56,12 @@ impl Val {
         unsafe {
             macro_rules! register_void {
                 ($ty:ty) => {{
-                    embindable!($ty);
+                    impl Into<Val> for $ty {
+                        fn into(self) -> Val {
+                            Val(1 as _)
+                        }
+                    }
+
                     _embind_register_void(type_id::<$ty>(), concat!(stringify!($ty), "\0").as_ptr());
                 }}
             }
@@ -71,7 +69,12 @@ impl Val {
             register_void!(());
             register_void!(void);
 
-            embindable!(bool);
+            impl Into<Val> for bool {
+                fn into(self) -> Val {
+                    Val(if self { 3 } else { 4 } as _)
+                }
+            }
+
             _embind_register_bool(type_id::<bool>(), b"bool\0".as_ptr(), size_of::<bool>(), false, true);
 
             macro_rules! register_int {
@@ -127,6 +130,10 @@ impl Val {
         Val(unsafe {
             _emval_new_cstring(s)
         })
+    }
+
+    pub fn null() -> Self {
+        Val(2 as _)
     }
 
     pub fn global() -> Self {

@@ -121,4 +121,5 @@ fn main() {
     Val::register();
 
     Val::global().set("answer", "hello, world");
+    Val::global().set("smth", true);
 }
