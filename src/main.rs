@@ -5,6 +5,10 @@ use std::ffi::CString;
 use std::os::raw::c_void as void;
 use std::intrinsics;
 
+mod value;
+
+use value::*;
+
 #[derive(Debug)]
 pub struct MyStruct {
     x: u32
@@ -25,16 +29,6 @@ impl Drop for MyStruct {
     }
 }
 
-type TypeId = u32;
-type CStr = *const u8;
-
-fn type_id<T: ?Sized + 'static>() -> TypeId {
-    unsafe {
-        intrinsics::type_id::<T>() as TypeId
-    }
-}
-
-#[link_args = "-s NO_EXIT_RUNTIME=1 --bind"]
 extern {
     fn _embind_register_class(
         cls_type: TypeId,
@@ -63,8 +57,8 @@ extern {
 }
 
 fn register_class<T: 'static>() {
-    extern fn get_actual_type<T: 'static>(arg: *const void) -> u32 {
-        println!("reporting actual type of {:?} as {}", arg, type_id::<T>());
+    extern fn get_actual_type<T: 'static>(arg: *const void) -> TypeId {
+        println!("reporting actual type of {:?} as {:?}", arg, type_id::<T>());
         type_id::<T>()
     }
 
@@ -73,7 +67,7 @@ fn register_class<T: 'static>() {
     }
 
     extern fn destructure<T: 'static>(arg: *mut void) {
-        println!("destructure {:?} as {}", arg, type_id::<T>());
+        println!("destructure {:?} as {:?}", arg, type_id::<T>());
         unsafe {
             Box::from_raw(arg as *mut T);
         }
@@ -119,6 +113,12 @@ fn register_class_default_ctor<T: 'static + Default>() {
 }
 
 fn main() {
+    use value::Val;
+
     register_class::<MyStruct>();
     register_class_default_ctor::<MyStruct>();
+
+    Val::register();
+
+    Val::global(b"window\0".as_ptr()).set(b"answer\0".as_ptr(), Val::new(&"hello, world"));
 }
