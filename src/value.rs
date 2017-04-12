@@ -13,7 +13,11 @@ pub fn type_id<T: ?Sized + 'static>() -> TypeId {
 #[repr(C)]
 pub struct EmvalStruct(void);
 
+#[repr(C)]
+pub struct EmdestructorsStruct(void);
+
 pub type Emval = *mut EmvalStruct;
+pub type Emdestructors = *mut EmdestructorsStruct;
 
 pub type CStr = *const u8;
 
@@ -54,11 +58,12 @@ macro_rules! em_from_js {
         impl From<Val> for $ty {
             fn from(value: Val) -> $ty {
                 extern {
-                    fn _emval_as(value: Emval, type_id: TypeId, destructors: *const void) -> $ty;
+                    fn _emval_as(value: Emval, type_id: TypeId, destructors: *mut Emdestructors) -> $ty;
                 }
 
                 unsafe {
-                    _emval_as(value.0, type_id::<$ty>(), 0 as _)
+                    let mut destructors = 0 as Emdestructors;
+                    _emval_as(value.0, type_id::<$ty>(), &mut destructors as *mut Emdestructors)
                 }
             }
         }
