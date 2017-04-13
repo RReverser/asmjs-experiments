@@ -69,6 +69,9 @@ extern {
         invoker: extern fn (fn () -> Box<void>) -> *mut void,
         ctor: fn () -> Box<void>
     );
+
+    fn emscripten_pause_main_loop();
+    fn emscripten_set_main_loop(f: unsafe extern fn(), fps: u32, infinite: u32);
 }
 
 fn register_class<T: 'static>() {
@@ -151,11 +154,11 @@ fn main() {
             );
         }
 
-        extern fn getter(ctx: u32, ptr: *const MyStruct) -> u32 {
+        extern fn getter(_ctx: u32, ptr: *const MyStruct) -> u32 {
             unsafe { (*ptr).x }
         }
 
-        extern fn setter(ctx: u32, ptr: *mut MyStruct, value: u32) {
+        extern fn setter(_ctx: u32, ptr: *mut MyStruct, value: u32) {
             unsafe { (*ptr).x = value }
         }
 
@@ -180,4 +183,8 @@ fn main() {
     global.set("mystruct", MyStruct { x: 42 });
 
     println!("{}", usize::from(global.get("navigator").get("plugins").get("length")));
+
+    unsafe {
+        emscripten_set_main_loop(emscripten_pause_main_loop, 0, 1);
+    }
 }
