@@ -29,6 +29,20 @@ impl Drop for MyStruct {
     }
 }
 
+impl Into<Val> for MyStruct {
+    fn into(self) -> Val {
+        Box::new(self).into()
+    }
+}
+
+impl Into<Val> for Box<MyStruct> {
+    fn into(self) -> Val {
+        unsafe {
+            Val::new(Box::into_raw(self))
+        }
+    }
+}
+
 extern {
     fn _embind_register_class(
         cls_type: TypeId,
@@ -124,6 +138,7 @@ fn main() {
 
     global.set("str", "hello, world");
     global.set("flag", true);
+    global.set("mystruct", MyStruct { x: 42 });
 
     println!("{}", usize::from(global.get("navigator").get("plugins").get(Val::cstring(b"length\0" as _))));
 }
