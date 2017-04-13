@@ -9,6 +9,7 @@ mod value;
 
 use value::*;
 
+#[repr(C)]
 #[derive(Debug)]
 pub struct MyStruct {
     x: u32
@@ -133,6 +134,44 @@ fn main() {
 
     register_class::<MyStruct>();
     register_class_default_ctor::<MyStruct>();
+
+    unsafe {
+        extern {
+            fn _embind_register_class_property(
+                cls_type: TypeId,
+                field_name: CStr,
+                getter_ret_type: TypeId,
+                getter_signature: CStr,
+                getter: extern fn (ctx: u32, ptr: *const MyStruct) -> u32,
+                getter_context: u32,
+                setter_arg_type: TypeId,
+                setter_signature: CStr,
+                setter: extern fn (ctx: u32, ptr: *mut MyStruct, value: u32) -> (),
+                setter_context: u32
+            );
+        }
+
+        extern fn getter(ctx: u32, ptr: *const MyStruct) -> u32 {
+            unsafe { (*ptr).x }
+        }
+
+        extern fn setter(ctx: u32, ptr: *mut MyStruct, value: u32) {
+            unsafe { (*ptr).x = value }
+        }
+
+        _embind_register_class_property(
+            type_id::<MyStruct>(),
+            b"x\0".as_ptr(),
+            type_id::<u32>(),
+            b"iii\0".as_ptr(),
+            getter,
+            0,
+            type_id::<u32>(),
+            b"viii\0".as_ptr(),
+            setter,
+            0
+        );
+    }
 
     let global = Val::global();
 
