@@ -58,8 +58,10 @@ extern {
 
 fn register_class<T: 'static>() {
     extern fn get_actual_type<T: 'static>(arg: *const void) -> TypeId {
-        println!("reporting actual type of {:?} as {:?}", arg, type_id::<T>());
-        type_id::<T>()
+        unsafe {
+            println!("reporting actual type of {:?} as {:?}", arg, type_id::<T>());
+            type_id::<T>()
+        }
     }
 
     extern fn noop() {
@@ -67,8 +69,8 @@ fn register_class<T: 'static>() {
     }
 
     extern fn destructure<T: 'static>(arg: *mut void) {
-        println!("destructure {:?} as {:?}", arg, type_id::<T>());
         unsafe {
+            println!("destructure {:?} as {:?}", arg, type_id::<T>());
             Box::from_raw(arg as *mut T);
         }
     }
@@ -118,9 +120,10 @@ fn main() {
     register_class::<MyStruct>();
     register_class_default_ctor::<MyStruct>();
 
-    Val::register();
+    let global = Val::global();
 
-    Val::global().set("answer", "hello, world");
-    Val::global().set("smth", true);
-    println!("{}", usize::from(Val::global().get("navigator").get("plugins").get("length")));
+    global.set("str", "hello, world");
+    global.set("flag", true);
+
+    println!("{}", usize::from(global.get("navigator").get("plugins").get(Val::cstring(b"length\0" as _))));
 }
