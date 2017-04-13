@@ -140,5 +140,5 @@ fn main() {
     global.set("flag", true);
     global.set("mystruct", MyStruct { x: 42 });
 
-    println!("{}", usize::from(global.get("navigator").get("plugins").get(Val::cstring(b"length\0" as _))));
+    println!("{}", usize::from(global.get("navigator").get("plugins").get("length")));
 }
