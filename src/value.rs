@@ -9,11 +9,30 @@ pub type TypeId = i32;
 #[repr(C)]
 pub struct EmvalStruct(void);
 
-#[repr(C)]
-pub struct EmdestructorsStruct(void);
-
 pub type Emval = *mut EmvalStruct;
-pub type Emdestructors = *mut EmdestructorsStruct;
+
+#[repr(C)]
+pub struct Emdestructors {
+    handle: Emval
+}
+
+impl Default for Emdestructors {
+    fn default() -> Self {
+        Emdestructors {
+            handle: 0 as _
+        }
+    }
+}
+
+impl Drop for Emdestructors {
+    fn drop(&mut self) {
+        unsafe {
+            debug_assert!(self.handle != 0 as _);
+            ::std::intrinsics::breakpoint();
+            _emval_run_destructors(self.handle)
+        }
+    }
+}
 
 pub type CStr = *const u8;
 
@@ -28,6 +47,7 @@ extern {
 
     fn _emval_incref(value: Emval);
     fn _emval_decref(value: Emval);
+    fn _emval_run_destructors(destructors: Emval);
 
     fn _emval_take_value(type_id: TypeId, ptr: *const void) -> Emval;
     fn _emval_new_array() -> Emval;
@@ -60,7 +80,7 @@ macro_rules! em_from_js {
                 }
 
                 unsafe {
-                    let mut destructors = 0 as Emdestructors;
+                    let mut destructors = Emdestructors::default();
                     _emval_as(value.0, type_id::<$ty>(), &mut destructors as *mut Emdestructors)
                 }
             }
