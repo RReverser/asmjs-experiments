@@ -70,8 +70,7 @@ extern {
         ctor: fn () -> Box<void>
     );
 
-    fn emscripten_pause_main_loop();
-    fn emscripten_set_main_loop(f: unsafe extern fn(), fps: u32, infinite: u32);
+    fn emscripten_exit_with_live_runtime();
 }
 
 fn register_class<T: 'static>() {
@@ -185,6 +184,6 @@ fn main() {
     println!("{}", usize::from(global.get("navigator").get("plugins").get("length")));
 
     unsafe {
-        emscripten_set_main_loop(emscripten_pause_main_loop, 0, 1);
+        emscripten_exit_with_live_runtime();
     }
 }
