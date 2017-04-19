@@ -175,6 +175,36 @@ fn main() {
         );
     }
 
+    extern {
+        fn _embind_register_function(
+            name: CStr,
+            arg_count: usize,
+            arg_types: *const TypeId,
+            signature: CStr,
+            invoker: extern fn (f: fn (u32, u32) -> u32, a: u32, b: u32) -> u32,
+            ctor: fn (u32, u32) -> u32
+        );
+    }
+
+    unsafe {
+        extern fn invoker(f: fn (u32, u32) -> u32, a: u32, b: u32) -> u32 {
+            f(a, b)
+        }
+
+        fn adder(a: u32, b: u32) -> u32 {
+            a + b
+        }
+
+        _embind_register_function(
+            b"fast_add\0".as_ptr(),
+            3,
+            [type_id::<u32>(), type_id::<u32>(), type_id::<u32>()].as_ptr(),
+            b"iiii\0".as_ptr(),
+            invoker,
+            adder
+        );
+    }
+
     let global = Val::global();
 
     global.set("str", "hello, world");
