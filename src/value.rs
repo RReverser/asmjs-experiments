@@ -36,12 +36,26 @@ impl Drop for Emdestructors {
 
 pub type CStr = *const u8;
 
+#[repr(u32)]
+#[allow(non_camel_case_types)]
+enum MemoryViewType {
+    i8,
+    u8,
+    i16,
+    u16,
+    i32,
+    u32,
+    f32,
+    f64,
+}
+
 #[link_args = "--bind --js-library rustlib.js"]
 extern {
     fn _embind_register_void(type_id: TypeId, name: CStr);
     fn _embind_register_bool(type_id: TypeId, name: CStr, size: usize, true_value: bool, false_value: bool);
     fn _embind_register_integer(type_id: TypeId, name: CStr, size: usize, minRange: isize, maxRange: usize);
     fn _embind_register_float(type_id: TypeId, name: CStr, size: usize);
+    fn _embind_register_memory_view(type_id: TypeId, view_type: MemoryViewType, name: CStr);
 
     fn _embind_register_rust_string(type_id: TypeId);
 
@@ -152,6 +166,54 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
 
         em_to_js!(&'static str);
         _embind_register_rust_string(inner_type_id::<&'static str>());
+
+        struct MemoryView<T> {
+            pub size: usize,
+            pub data: *const T
+        }
+
+        macro_rules! register_memory_view {
+            ($item_type:ident) => {{
+                impl Into<Val> for &'static [$item_type] {
+                    fn into(self) -> Val {
+                        unsafe {
+                            Val::new(MemoryView {
+                                size: self.len(),
+                                data: self.as_ptr()
+                            })
+                        }
+                    }
+                }
+
+                impl Into<Val> for Box<[$item_type]> {
+                    fn into(self) -> Val {
+                        unsafe {
+                            Val::new(MemoryView {
+                                size: self.len(),
+                                data: self.as_ptr()
+                            })
+                        }
+                    }
+                }
+
+                impl Into<Val> for Vec<$item_type> {
+                    fn into(self) -> Val {
+                        self.into_boxed_slice().into()
+                    }
+                }
+
+                _embind_register_memory_view(inner_type_id::<MemoryView<$item_type>>(), MemoryViewType::$item_type, concat!("&", stringify!($item_type), "[]\0").as_ptr())
+            }}
+        }
+
+        register_memory_view!(i8);
+        register_memory_view!(u8);
+        register_memory_view!(i16);
+        register_memory_view!(u16);
+        register_memory_view!(i32);
+        register_memory_view!(u32);
+        register_memory_view!(f32);
+        register_memory_view!(f64);
     });
 
     inner_type_id::<T>()

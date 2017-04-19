@@ -134,6 +134,8 @@ fn register_class_default_ctor<T: 'static + Default>() {
     }
 }
 
+static STATIC_ARRAY: [u32; 3] = [1, 2, 3];
+
 fn main() {
     use value::Val;
 
@@ -214,6 +216,7 @@ fn main() {
     global.set("str", "hello, world");
     global.set("flag", true);
     global.set("mystruct", MyStruct { x: 42 });
+    global.set("arr", &STATIC_ARRAY[..]);
 
     println!("{}", usize::from(global.get("navigator").get("plugins").get("length")));
 
