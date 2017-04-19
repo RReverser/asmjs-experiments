@@ -28,7 +28,6 @@ impl Drop for Emdestructors {
     fn drop(&mut self) {
         unsafe {
             debug_assert!(self.handle != 0 as _);
-            ::std::intrinsics::breakpoint();
             _emval_run_destructors(self.handle)
         }
     }
