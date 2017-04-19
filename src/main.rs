@@ -61,15 +61,6 @@ extern {
         destructor: extern fn (*mut void) -> ()
     );
 
-    fn _embind_register_class_constructor(
-        cls_type: TypeId,
-        arg_count: usize,
-        arg_types: *const TypeId,
-        invoker_signature: CStr,
-        invoker: extern fn (fn () -> Box<void>) -> *mut void,
-        ctor: fn () -> Box<void>
-    );
-
     fn emscripten_exit_with_live_runtime();
 }
 
@@ -116,6 +107,18 @@ fn register_class_default_ctor<T: 'static + Default>() {
         let p = Box::into_raw(f());
         println!("constructed {:?}", p);
         p
+    }
+
+    #[allow(improper_ctypes)]
+    extern {
+        fn _embind_register_class_constructor(
+            cls_type: TypeId,
+            arg_count: usize,
+            arg_types: *const TypeId,
+            invoker_signature: CStr,
+            invoker: extern fn (fn () -> Box<void>) -> *mut void,
+            ctor: fn () -> Box<void>
+        );
     }
 
     unsafe {
@@ -175,6 +178,7 @@ fn main() {
         );
     }
 
+    #[allow(improper_ctypes)]
     extern {
         fn _embind_register_function(
             name: CStr,
