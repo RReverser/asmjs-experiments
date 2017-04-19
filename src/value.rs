@@ -108,6 +108,14 @@ macro_rules! em_js {
     }}
 }
 
+macro_rules! cstr {
+    ($($val:expr),+) => (concat!($($val,)+ "\0").as_ptr())
+}
+
+macro_rules! cname {
+    ($tt:tt) => (cstr!(stringify!($tt)))
+}
+
 unsafe fn inner_type_id<T: ?Sized + 'static>() -> i32 {
     ::std::intrinsics::type_id::<T>() as _
 }
@@ -122,7 +130,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
                     }
                 }
 
-                _embind_register_void(inner_type_id::<$ty>(), concat!(stringify!($ty), "\0").as_ptr());
+                _embind_register_void(inner_type_id::<$ty>(), cname!($ty));
             }}
         }
 
@@ -135,12 +143,12 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
             }
         }
 
-        _embind_register_bool(inner_type_id::<bool>(), b"bool\0".as_ptr(), size_of::<bool>(), false, true);
+        _embind_register_bool(inner_type_id::<bool>(), cstr!("bool"), size_of::<bool>(), false, true);
 
         macro_rules! register_int {
             ($name:ident) => {{
                 em_js!($name);
-                _embind_register_integer(inner_type_id::<$name>(), concat!(stringify!($name), "\0").as_ptr(), size_of::<$name>(), ::std::$name::MIN as _, ::std::$name::MAX as _);
+                _embind_register_integer(inner_type_id::<$name>(), cname!($name), size_of::<$name>(), ::std::$name::MIN as _, ::std::$name::MAX as _);
             }}
         }
 
@@ -156,7 +164,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
         macro_rules! register_float {
             ($name:ident) => {{
                 em_js!($name);
-                _embind_register_float(inner_type_id::<$name>(), concat!(stringify!($name), "\0").as_ptr(), size_of::<$name>());
+                _embind_register_float(inner_type_id::<$name>(), cname!($name), size_of::<$name>());
             }}
         }
 
@@ -201,7 +209,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
                     }
                 }
 
-                _embind_register_memory_view(inner_type_id::<MemoryView<$item_type>>(), MemoryViewType::$item_type, concat!("&", stringify!($item_type), "[]\0").as_ptr())
+                _embind_register_memory_view(inner_type_id::<MemoryView<$item_type>>(), MemoryViewType::$item_type, cstr!("&", stringify!($item_type), "[]"))
             }}
         }
 
