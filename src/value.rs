@@ -171,8 +171,15 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
         register_float!(f32);
         register_float!(f64);
 
-        em_to_js!(&'static str);
-        _embind_register_rust_string(inner_type_id::<&'static str>());
+        impl<'a> From<&'a str> for Val {
+            fn from(value: &'a str) -> Self {
+                unsafe {
+                    Val(_emval_take_value(type_id::<&str>(), &value as *const &'a str as *const void))
+                }
+            }
+        }
+
+        _embind_register_rust_string(inner_type_id::<&str>());
 
         struct MemoryView<T> {
             pub size: usize,
