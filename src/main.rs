@@ -218,7 +218,13 @@ fn main() {
     global.set("mystruct", MyStruct { x: 42 });
     global.set("arr", &STATIC_ARRAY[..]);
 
-    println!("{}", usize::from(global.get("navigator").get("plugins").get("length")));
+    extern {
+        fn emscripten_asm_const_int(s: CStr, ...) -> Emval;
+    }
+
+    unsafe {
+        println!("{}", usize::from(Val(emscripten_asm_const_int(b"return __emval_register(navigator.plugins);\0" as CStr)).get("length")));
+    }
 
     unsafe {
         emscripten_exit_with_live_runtime();

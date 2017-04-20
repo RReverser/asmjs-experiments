@@ -233,7 +233,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
     inner_type_id::<T>()
 }
 
-pub struct Val(Emval);
+pub struct Val(pub Emval);
 
 impl Val {
     pub unsafe fn new<T: 'static>(value: T) -> Self {
