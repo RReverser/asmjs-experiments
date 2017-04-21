@@ -202,23 +202,6 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
                     }
                 }
 
-                impl Into<Val> for Box<[$item_type]> {
-                    fn into(self) -> Val {
-                        unsafe {
-                            Val::new(MemoryView {
-                                size: self.len(),
-                                data: self.as_ptr()
-                            })
-                        }
-                    }
-                }
-
-                impl Into<Val> for Vec<$item_type> {
-                    fn into(self) -> Val {
-                        self.into_boxed_slice().into()
-                    }
-                }
-
                 _embind_register_memory_view(inner_type_id::<MemoryView<$item_type>>(), MemoryViewType::$item_type, cstr!("&", stringify!($item_type), "[]"))
             }}
         }
