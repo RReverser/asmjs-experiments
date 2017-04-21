@@ -10,5 +10,16 @@ mergeInto(LibraryManager.library, {
             return Pointer_stringify(pointer, length);
         }
     });
-  }
+  },
+
+  _embind_iterator__deps: ['_emval_decref', '$emval_handle_array', '_emval_register'],
+  _embind_iterator_start: function(handle) {
+    var value = emval_handle_array[handle].value;
+    return __emval_register(value[Symbol.iterator]());
+  },
+
+  _embind_iterator_next: function(handle) {
+    var next = emval_handle_array[handle].value.next();
+    return next.done ? 0 : __emval_register(next.value);
+  },
 });

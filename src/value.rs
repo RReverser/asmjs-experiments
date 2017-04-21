@@ -70,6 +70,9 @@ extern {
     fn _emval_get_global(name: CStr) -> Emval;
     fn _emval_get_property(obj: Emval, prop: Emval) -> Emval;
     fn _emval_set_property(obj: Emval, prop: Emval, value: Emval);
+
+    fn _embind_iterator_start(value: Emval) -> Emval;
+    fn _embind_iterator_next(iterator: Emval) -> Emval;
 }
 
 macro_rules! em_to_js {
@@ -294,6 +297,47 @@ impl Drop for Val {
     fn drop(&mut self) {
         unsafe {
             _emval_decref(self.0);
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a Val {
+    type Item = Val;
+    type IntoIter = EmvalIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        EmvalIterator {
+            iterator: unsafe {
+                _embind_iterator_start(self.0)
+            }
+        }
+    }
+}
+
+impl IntoIterator for Val {
+    type Item = Val;
+    type IntoIter = EmvalIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        (&self).into_iter()
+    }
+}
+
+pub struct EmvalIterator {
+    iterator: Emval
+}
+
+impl Iterator for EmvalIterator {
+    type Item = Val;
+
+    fn next(&mut self) -> Option<Val> {
+        unsafe {
+            let result = _embind_iterator_next(self.iterator);
+            if result.is_null() {
+                None
+            } else {
+                Some(Val(result))
+            }
         }
     }
 }
