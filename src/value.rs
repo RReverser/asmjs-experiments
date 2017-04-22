@@ -376,6 +376,8 @@ mod tests {
         assert_eq!(i32::from(global.get("num")), 42);
         assert_eq!(i8::from(global.get("num")), 42);
         assert_eq!(f64::from(global.get("num")), 42f64);
+        assert_eq!(u32::from(js_val!("arr[1]")), 2);
+        assert_eq!(u8::from(js_val!("str.charCodeAt(0)")) as char, 'h');
 
         assert_eq!(count_emval_handles(), 1);
     }
