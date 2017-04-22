@@ -148,12 +148,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
                 match value.0 as u32 {
                     3 => true,
                     4 => false,
-                    _ => {
-                        let mut destructors = Emdestructors::default();
-                        unsafe {
-                            _emval_as(value.0, type_id::<bool>(), &mut destructors) != 0f64
-                        }
-                    }
+                    _ => u32::from(value) != 0
                 }
             }
         }
