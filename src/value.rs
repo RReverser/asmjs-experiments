@@ -73,6 +73,9 @@ extern {
     fn _emval_get_property(obj: Emval, prop: Emval) -> Emval;
     fn _emval_set_property(obj: Emval, prop: Emval, value: Emval);
 
+    #[doc(hidden)]
+    pub fn emscripten_asm_const_int(code: CStr, ...) -> Emval;
+
     fn _embind_iterator_start(value: Emval) -> Emval;
     fn _embind_iterator_next(iterator: Emval) -> Emval;
 }
@@ -334,6 +337,12 @@ impl Iterator for EmvalIterator {
     }
 }
 
+#[macro_export]
+macro_rules! js_val {
+    ($expr:tt $(,$arg:tt)*) => ($crate::value::Val(unsafe {
+        $crate::value::emscripten_asm_const_int(cstr!("return __emval_register(", $expr, ")") $(,$arg)*)
+    }))
+}
 
 #[cfg(test)]
 mod tests {
@@ -354,15 +363,11 @@ mod tests {
         assert_eq!(i32::from(global.get("num")), 42);
         assert_eq!(i8::from(global.get("num")), 42);
         assert_eq!(f64::from(global.get("num")), 42f64);
+    }
 
-        extern {
-            fn emscripten_asm_const_int(s: CStr, ...) -> Emval;
-        }
-
-        unsafe { ::std::intrinsics::breakpoint(); }
-
-        assert_eq!(usize::from(Val(unsafe {
-            emscripten_asm_const_int("return __emval_register(Int32Array)\0" as *const str as *const u8)
-        }).get("BYTES_PER_ELEMENT")), size_of::<i32>());
+    #[test]
+    fn test_js_val() {
+        assert_eq!(usize::from(js_val!("Int32Array").get("BYTES_PER_ELEMENT")), size_of::<i32>());
+        assert_eq!(u32::from(js_val!("$0+$1", 10, 20)), 30);
     }
 }
