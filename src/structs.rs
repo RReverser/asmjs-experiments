@@ -174,9 +174,18 @@ mod tests {
             );
         }
 
+        assert_eq!(count_emval_handles(), 0);
+
         let global = Val::global();
 
+        assert_eq!(count_emval_handles(), 1);
+
         global.set("mystruct", MyStruct { x: 42 });
+
+        assert_eq!(count_emval_handles(), 1);
+
         assert_eq!(u32::from(global.get("mystruct").get("x")), 42);
+
+        assert_eq!(count_emval_handles(), 1);
     }
 }

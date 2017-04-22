@@ -345,6 +345,13 @@ macro_rules! js_val {
 }
 
 #[cfg(test)]
+pub fn count_emval_handles() -> usize {
+    unsafe {
+        emscripten_asm_const_int(cstr!("return count_emval_handles()")) as usize
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use value::*;
 
@@ -352,22 +359,34 @@ mod tests {
 
     #[test]
     fn test_simple_values() {
+        assert_eq!(count_emval_handles(), 0);
+
         let global = Val::global();
+
+        assert_eq!(count_emval_handles(), 1);
 
         global.set("str", "hello, world");
         global.set("flag", true);
         global.set("num", 42);
         global.set("arr", &STATIC_ARRAY[..]);
 
+        assert_eq!(count_emval_handles(), 1);
+
         assert_eq!(bool::from(global.get("flag")), true);
         assert_eq!(i32::from(global.get("num")), 42);
         assert_eq!(i8::from(global.get("num")), 42);
         assert_eq!(f64::from(global.get("num")), 42f64);
+
+        assert_eq!(count_emval_handles(), 1);
     }
 
     #[test]
     fn test_js_val() {
+        assert_eq!(count_emval_handles(), 0);
+
         assert_eq!(usize::from(js_val!("Int32Array").get("BYTES_PER_ELEMENT")), size_of::<i32>());
         assert_eq!(u32::from(js_val!("$0+$1", 10, 20)), 30);
+
+        assert_eq!(count_emval_handles(), 0);
     }
 }
