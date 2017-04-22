@@ -64,6 +64,7 @@ extern {
     fn _emval_run_destructors(destructors: Emval);
 
     fn _emval_take_value(type_id: TypeId, ptr: *const void) -> Emval;
+    fn _emval_as(value: Emval, type_id: TypeId, destructors: *mut Emdestructors) -> f64;
     fn _emval_new_array() -> Emval;
     fn _emval_new_object() -> Emval;
     fn _emval_new_cstring(s: CStr) -> Emval;
@@ -92,13 +93,9 @@ macro_rules! em_from_js {
     ($ty:ty) => {
         impl From<Val> for $ty {
             fn from(value: Val) -> $ty {
-                extern {
-                    fn _emval_as(value: Emval, type_id: TypeId, destructors: *mut Emdestructors) -> $ty;
-                }
-
+                let mut destructors = Emdestructors::default();
                 unsafe {
-                    let mut destructors = Emdestructors::default();
-                    _emval_as(value.0, type_id::<$ty>(), &mut destructors)
+                    _emval_as(value.0, type_id::<$ty>(), &mut destructors) as _
                 }
             }
         }
@@ -110,10 +107,6 @@ macro_rules! em_js {
         em_from_js!($ty);
         em_to_js!($ty);
     }}
-}
-
-macro_rules! cstr {
-    ($($val:expr),+) => (concat!($($val,)+ "\0").as_ptr())
 }
 
 macro_rules! cname {
@@ -144,6 +137,21 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
         impl Into<Val> for bool {
             fn into(self) -> Val {
                 Val(if self { 3 } else { 4 } as _)
+            }
+        }
+
+        impl From<Val> for bool {
+            fn from(value: Val) -> bool {
+                match value.0 as u32 {
+                    3 => true,
+                    4 => false,
+                    _ => {
+                        let mut destructors = Emdestructors::default();
+                        unsafe {
+                            _emval_as(value.0, type_id::<bool>(), &mut destructors) != 0f64
+                        }
+                    }
+                }
             }
         }
 
@@ -323,5 +331,38 @@ impl Iterator for EmvalIterator {
                 Some(Val(result))
             }
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use value::*;
+
+    static STATIC_ARRAY: [u32; 3] = [1, 2, 3];
+
+    #[test]
+    fn test_simple_values() {
+        let global = Val::global();
+
+        global.set("str", "hello, world");
+        global.set("flag", true);
+        global.set("num", 42);
+        global.set("arr", &STATIC_ARRAY[..]);
+
+        assert_eq!(bool::from(global.get("flag")), true);
+        assert_eq!(i32::from(global.get("num")), 42);
+        assert_eq!(i8::from(global.get("num")), 42);
+        assert_eq!(f64::from(global.get("num")), 42f64);
+
+        extern {
+            fn emscripten_asm_const_int(s: CStr, ...) -> Emval;
+        }
+
+        unsafe { ::std::intrinsics::breakpoint(); }
+
+        assert_eq!(usize::from(Val(unsafe {
+            emscripten_asm_const_int("return __emval_register(Int32Array)\0" as *const str as *const u8)
+        }).get("BYTES_PER_ELEMENT")), size_of::<i32>());
     }
 }
