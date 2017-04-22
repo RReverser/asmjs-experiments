@@ -120,7 +120,7 @@ unsafe fn inner_type_id<T: ?Sized + 'static>() -> i32 {
     ::std::intrinsics::type_id::<T>() as _
 }
 
-pub fn type_id<T: ?Sized + 'static>() -> TypeId {
+pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
     REGISTER.call_once(|| {
         macro_rules! register_void {
             ($ty:ty) => {{
