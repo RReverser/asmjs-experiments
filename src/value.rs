@@ -1,6 +1,7 @@
 use std::os::raw::c_void as void;
 use std::mem::size_of;
 use std::sync::{Once, ONCE_INIT};
+use std::ptr::{null, null_mut};
 
 static REGISTER: Once = ONCE_INIT;
 
@@ -19,7 +20,7 @@ pub struct Emdestructors {
 impl Default for Emdestructors {
     fn default() -> Self {
         Emdestructors {
-            handle: 0 as _
+            handle: null_mut()
         }
     }
 }
@@ -27,7 +28,7 @@ impl Default for Emdestructors {
 impl Drop for Emdestructors {
     fn drop(&mut self) {
         unsafe {
-            debug_assert!(self.handle != 0 as _);
+            debug_assert!(!self.handle.is_null());
             _emval_run_destructors(self.handle)
         }
     }
@@ -97,7 +98,7 @@ macro_rules! em_from_js {
 
                 unsafe {
                     let mut destructors = Emdestructors::default();
-                    _emval_as(value.0, type_id::<$ty>(), &mut destructors as *mut Emdestructors)
+                    _emval_as(value.0, type_id::<$ty>(), &mut destructors)
                 }
             }
         }
@@ -250,7 +251,7 @@ impl Val {
 
     pub fn global() -> Self {
         Val(unsafe {
-            _emval_get_global(0 as _)
+            _emval_get_global(null())
         })
     }
 
