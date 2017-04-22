@@ -126,7 +126,7 @@ mod tests {
     impl Into<Val> for Box<MyStruct> {
         fn into(self) -> Val {
             unsafe {
-                Val::new(Box::into_raw(self))
+                Val::new(&Box::into_raw(self))
             }
         }
     }

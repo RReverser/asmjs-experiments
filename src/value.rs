@@ -85,7 +85,7 @@ macro_rules! em_to_js {
         impl From<$ty> for Val {
             fn from(value: $ty) -> Self {
                 unsafe {
-                    Val::new(value)
+                    Val::new(&value)
                 }
             }
         }
@@ -206,7 +206,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
                 impl Into<Val> for &'static [$item_type] {
                     fn into(self) -> Val {
                         unsafe {
-                            Val::new(MemoryView {
+                            Val::new(&MemoryView {
                                 size: self.len(),
                                 data: self.as_ptr()
                             })
@@ -234,8 +234,8 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
 pub struct Val(pub Emval);
 
 impl Val {
-    pub unsafe fn new<T: 'static>(value: T) -> Self {
-        Val(_emval_take_value(type_id::<T>(), &value as *const T as *const void))
+    pub unsafe fn new<T: 'static>(value: &T) -> Self {
+        Val(_emval_take_value(type_id::<T>(), value as *const T as *const void))
     }
 
     pub fn array() -> Self {
