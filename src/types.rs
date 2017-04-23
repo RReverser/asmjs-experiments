@@ -141,7 +141,10 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
 
         impl From<Val> for char {
             fn from(value: Val) -> char {
-                ::std::char::from_u32(u32::from(value)).unwrap()
+                let mut destructors = Emdestructors::default();
+                ::std::char::from_u32(unsafe {
+                    _emval_as(value.0, type_id::<char>(), &mut destructors) as _
+                }).unwrap()
             }
         }
 

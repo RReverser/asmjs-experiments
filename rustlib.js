@@ -16,7 +16,7 @@ mergeInto(LibraryManager.library, {
   _embind_register_rust_char__deps: ['embind_repr', '$integerReadValueFromPointer', '$registerType'],
   _embind_register_rust_char: function(primitiveType) {
     registerType(primitiveType, {
-        name: name,
+        name: 'char',
         'fromWireType': function(value) {
           return String.fromCodePoint(value >>> 0);
         },
@@ -41,7 +41,9 @@ mergeInto(LibraryManager.library, {
           return value;
         },
         'argPackAdvance': 8,
-        'readValueFromPointer': integerReadValueFromPointer(name, shift, minRange !== 0),
+        'readValueFromPointer': function (pointer) {
+          return String.fromCodePoint(HEAPU32[pointer >> 2]);
+        },
         destructorFunction: null, // This type does not need a destructor
     });
   },
