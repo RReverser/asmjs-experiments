@@ -1,0 +1,22 @@
+language: rust
+rust: nightly
+cache:
+  cargo: true
+  directories:
+    - ~/.emscripten_cache
+addons:
+  apt:
+    sources: ['ubuntu-toolchain-r-test']
+    packages: ['libstdc++6']
+before_script:
+  - pushd ..
+  - curl -s https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz | tar xvz
+  - cd emsdk-portable
+  - ./emsdk update
+  - ./emsdk install latest > /dev/null
+  - ./emsdk activate latest
+  - source ./emsdk_env.sh
+  - rustup target add asmjs-unknown-emscripten
+  - popd
+script:
+  - cargo test --no-run --target=asmjs-unknown-emscripten && node target/asmjs-unknown-emscripten/debug/deps/asmjs-*.js
