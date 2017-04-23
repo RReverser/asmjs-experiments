@@ -240,6 +240,14 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
         register_memory_view!(u32);
         register_memory_view!(f32);
         register_memory_view!(f64);
+
+        impl<'a> From<&'a ::std::ffi::CStr> for Val {
+            fn from(s: &'a ::std::ffi::CStr) -> Val {
+                Val(unsafe {
+                    _emval_new_cstring(s.as_ptr())
+                })
+            }
+        }
     });
 
     inner_type_id::<T>()
@@ -261,12 +269,6 @@ impl Val {
     pub fn object() -> Self {
         Val(unsafe {
             _emval_new_object()
-        })
-    }
-
-    pub fn cstring(s: CStr) -> Self {
-        Val(unsafe {
-            _emval_new_cstring(s)
         })
     }
 
