@@ -5,9 +5,10 @@ mergeInto(LibraryManager.library, {
         name: "&str",
         'argPackAdvance': 8,
         'readValueFromPointer': function (pointer) {
-            var length = HEAPU32[(pointer >> 2) + 1];
-            pointer = HEAPU32[pointer >> 2];
-            return Pointer_stringify(pointer, length);
+          pointer >>= 2;
+          var length = HEAPU32[pointer + 1];
+          pointer = HEAPU32[pointer];
+          return Pointer_stringify(pointer, length);
         }
     });
   },
@@ -27,8 +28,9 @@ mergeInto(LibraryManager.library, {
   _emval_get_string__deps: ['$requireHandle'],
   _emval_get_string: function(dest, handle) {
     handle = requireHandle(handle) + '';
-    var length = HEAPU32[(dest >> 2) + 1] = lengthBytesUTF8(handle);
-    var pointer = HEAPU32[dest >> 2] = _malloc(length + 1);
+    dest >>= 2;
+    var length = HEAPU32[dest + 1] = lengthBytesUTF8(handle);
+    var pointer = HEAPU32[dest] = _malloc(length + 1);
     stringToUTF8(handle, pointer, length + 1);
   },
 });
