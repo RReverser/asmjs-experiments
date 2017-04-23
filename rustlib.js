@@ -18,6 +18,7 @@ mergeInto(LibraryManager.library, {
     return __emval_register(value[Symbol.iterator]());
   },
 
+  _embind_iterator_next__deps: ['$emval_handle_array', '_emval_register'],
   _embind_iterator_next: function(handle) {
     var next = emval_handle_array[handle].value.next();
     return next.done ? 0 : __emval_register(next.value);
