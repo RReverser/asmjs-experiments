@@ -174,6 +174,7 @@ pub fn count_emval_handles() -> usize {
 #[cfg(test)]
 mod tests {
     use value::*;
+    use std::mem::size_of;
 
     static STATIC_ARRAY: [u32; 3] = [1, 2, 3];
 
