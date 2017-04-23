@@ -12,15 +12,15 @@ mergeInto(LibraryManager.library, {
     });
   },
 
-  _embind_iterator__deps: ['_emval_decref', '$emval_handle_array', '_emval_register'],
+  _embind_iterator__deps: ['_emval_decref', '$requireHandle', '_emval_register'],
   _embind_iterator_start: function(handle) {
-    var value = emval_handle_array[handle].value;
-    return __emval_register(value[Symbol.iterator]());
+    handle = requireHandle(handle);
+    return __emval_register(handle[Symbol.iterator]());
   },
 
-  _embind_iterator_next__deps: ['$emval_handle_array', '_emval_register'],
+  _embind_iterator_next__deps: ['$requireHandle', '_emval_register'],
   _embind_iterator_next: function(handle) {
-    var next = emval_handle_array[handle].value.next();
+    var next = requireHandle(handle).next();
     return next.done ? 0 : __emval_register(next.value);
   },
 });
