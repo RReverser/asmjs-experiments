@@ -124,8 +124,8 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
     REGISTER.call_once(|| {
         macro_rules! register_void {
             ($ty:ty) => {{
-                impl Into<Val> for $ty {
-                    fn into(self) -> Val {
+                impl From<$ty> for Val {
+                    fn from(_: $ty) -> Val {
                         Val(1 as _)
                     }
                 }
@@ -137,9 +137,9 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
         register_void!(());
         register_void!(void);
 
-        impl Into<Val> for bool {
-            fn into(self) -> Val {
-                Val(if self { 3 } else { 4 } as _)
+        impl From<bool> for Val {
+            fn from(b: bool) -> Val {
+                Val(if b { 3 } else { 4 } as _)
             }
         }
 
@@ -198,12 +198,12 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
 
         macro_rules! register_memory_view {
             ($item_type:ident) => {{
-                impl Into<Val> for &'static [$item_type] {
-                    fn into(self) -> Val {
+                impl From<&'static [$item_type]> for Val {
+                    fn from(slice: &'static [$item_type]) -> Val {
                         unsafe {
                             Val::new(&MemoryView {
-                                size: self.len(),
-                                data: self.as_ptr()
+                                size: slice.len(),
+                                data: slice.as_ptr()
                             })
                         }
                     }
