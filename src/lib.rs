@@ -7,6 +7,7 @@ macro_rules! cstr {
     ($($val:expr),+) => (concat!($($val,)+ "\0") as *const str as *const u8)
 }
 
+mod types;
 pub mod value;
 pub mod functions;
 pub mod structs;

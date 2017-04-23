@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use value::*;
+    use types::*;
 
     #[test]
     fn test_register_rust_fn() {

@@ -1,7 +1,9 @@
 use value::*;
+use types::*;
 use std::os::raw::c_void as void;
 use std::intrinsics::type_name;
 use std::ffi::CString;
+use std::ptr::null;
 
 extern {
     fn _embind_register_class(
@@ -45,7 +47,7 @@ pub fn register_class<T: 'static>() {
             type_id::<T>(),
             type_id::<*mut T>(),
             type_id::<*const T>(),
-            0,
+            null(),
             cstr!("ii"),
             get_actual_type::<T>,
             cstr!("v"),
@@ -126,7 +128,7 @@ mod tests {
     impl Into<Val> for Box<MyStruct> {
         fn into(self) -> Val {
             unsafe {
-                Val::new(&Box::into_raw(self))
+                Val::new_simple(&Box::into_raw(self))
             }
         }
     }
