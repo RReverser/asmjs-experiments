@@ -8,6 +8,9 @@ macro_rules! cstr {
 }
 
 mod types;
+
+#[macro_use]
 pub mod value;
+
 pub mod functions;
 pub mod structs;
