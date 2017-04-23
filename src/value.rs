@@ -153,7 +153,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
             }
         }
 
-        _embind_register_bool(inner_type_id::<bool>(), cstr!("bool"), size_of::<bool>(), false, true);
+        _embind_register_bool(inner_type_id::<bool>(), cname!(bool), size_of::<bool>(), false, true);
 
         macro_rules! register_int {
             ($name:ident) => {{
