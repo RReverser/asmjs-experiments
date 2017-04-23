@@ -190,7 +190,6 @@ mod tests {
         global.set("flag", true);
         global.set("num", 42);
         global.set("arr", &STATIC_ARRAY[..]);
-        global.set("ownedArr", vec![4, 5, 6].into_boxed_slice());
         global.set("ch", 'c');
 
         assert_eq!(count_emval_handles(), 1);
@@ -200,7 +199,6 @@ mod tests {
         assert_eq!(i8::from(global.get("num")), 42);
         assert_eq!(f64::from(global.get("num")), 42f64);
         assert_eq!(u32::from(global.get("arr").get(1)), 2);
-        assert_eq!(u32::from(global.get("ownedArr").get(2)), 6);
         assert_eq!(String::from(global.get("str")), "hello, world");
         assert_eq!(String::from(global.get("ch")), "c");
         assert_eq!(char::from(global.get("ch")), 'c');
@@ -210,8 +208,6 @@ mod tests {
         assert_eq!(String::from(global.get("str").into_iter().next().unwrap()), "h");
 
         assert_eq!(count_emval_handles(), 1);
-
-        js_val!("_free(ownedArr.byteOffset)");
     }
 
     #[test]
