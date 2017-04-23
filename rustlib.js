@@ -12,7 +12,7 @@ mergeInto(LibraryManager.library, {
     });
   },
 
-  _embind_iterator__deps: ['_emval_decref', '$requireHandle', '_emval_register'],
+  _embind_iterator__deps: ['$requireHandle', '_emval_register'],
   _embind_iterator_start: function(handle) {
     handle = requireHandle(handle);
     return __emval_register(handle[Symbol.iterator]());
