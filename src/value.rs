@@ -317,7 +317,7 @@ impl<'a> IntoIterator for &'a Val {
     fn into_iter(self) -> Self::IntoIter {
         EmvalIterator {
             iterator: unsafe {
-                _embind_iterator_start(self.0)
+                Val(_embind_iterator_start(self.0))
             }
         }
     }
@@ -333,7 +333,7 @@ impl IntoIterator for Val {
 }
 
 pub struct EmvalIterator {
-    iterator: Emval
+    iterator: Val
 }
 
 impl Iterator for EmvalIterator {
@@ -341,7 +341,7 @@ impl Iterator for EmvalIterator {
 
     fn next(&mut self) -> Option<Val> {
         unsafe {
-            let result = _embind_iterator_next(self.iterator);
+            let result = _embind_iterator_next(self.iterator.0);
             if result.is_null() {
                 None
             } else {
@@ -393,6 +393,7 @@ mod tests {
         assert_eq!(u32::from(js_val!("arr[1]")), 2);
         assert_eq!(String::from(global.get("str")), "hello, world");
         assert_eq!(u8::from(js_val!("str.charCodeAt(0)")) as char, 'h');
+        assert_eq!(String::from(global.get("str").into_iter().next().unwrap()), "h");
 
         assert_eq!(count_emval_handles(), 1);
     }
