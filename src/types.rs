@@ -68,6 +68,7 @@ extern {
     fn _embind_register_memory_view(type_id: TypeId, view_type: MemoryViewType, name: CStr);
 
     fn _embind_register_rust_string(type_id: TypeId);
+    fn _embind_register_rust_char(type_id: TypeId);
 
     fn _emval_as(value: Emval, type_id: TypeId, destructors: *mut Emdestructors) -> f64;
     fn _emval_new_cstring(s: CStr) -> Emval;
@@ -138,11 +139,26 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
         register_float!(f32);
         register_float!(f64);
 
+        impl From<Val> for char {
+            fn from(value: Val) -> char {
+                ::std::char::from_u32(u32::from(value)).unwrap()
+            }
+        }
+
+        em_to_js!(char);
+        _embind_register_rust_char(inner_type_id::<char>());
+
         impl<'a> From<&'a str> for Val {
             fn from(value: &'a str) -> Self {
                 unsafe {
                     Val::new::<&str, _>(&value)
                 }
+            }
+        }
+
+        impl From<String> for Val {
+            fn from(value: String) -> Self {
+                Val::from(value.as_str())
             }
         }
 

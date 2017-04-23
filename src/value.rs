@@ -190,6 +190,7 @@ mod tests {
         global.set("flag", true);
         global.set("num", 42);
         global.set("arr", &STATIC_ARRAY[..]);
+        global.set("ch", 'c');
 
         assert_eq!(count_emval_handles(), 1);
 
@@ -199,7 +200,11 @@ mod tests {
         assert_eq!(f64::from(global.get("num")), 42f64);
         assert_eq!(u32::from(js_val!("arr[1]")), 2);
         assert_eq!(String::from(global.get("str")), "hello, world");
-        assert_eq!(u8::from(js_val!("str.charCodeAt(0)")) as char, 'h');
+        assert_eq!(String::from(global.get("ch")), "c");
+        assert_eq!(char::from(global.get("ch")), 'c');
+        assert_eq!(char::from(global.get("num")), '*');
+        assert_eq!(char::from(global.get("str").get(0)), 'h');
+        assert_eq!(char::from(js_val!("str.charCodeAt(0)")), 'h');
         assert_eq!(String::from(global.get("str").into_iter().next().unwrap()), "h");
 
         assert_eq!(count_emval_handles(), 1);

@@ -13,6 +13,39 @@ mergeInto(LibraryManager.library, {
     });
   },
 
+  _embind_register_rust_char__deps: ['embind_repr', '$integerReadValueFromPointer', '$registerType'],
+  _embind_register_rust_char: function(primitiveType) {
+    registerType(primitiveType, {
+        name: name,
+        'fromWireType': function(value) {
+          return String.fromCodePoint(value >>> 0);
+        },
+        'toWireType': function(destructors, value) {
+          var valid = false;
+          switch (typeof value) {
+            case 'string':
+              if (value.codePointAt(1) === undefined) {
+                value = value.codePointAt(0);
+                valid = true;
+              }
+              break;
+            case 'number':
+              if (Number.isInteger(value) && value >= 0 && value <= 0x10FFFF) {
+                valid = true;
+              }
+              break;
+          }
+          if (!valid) {
+            throw new TypeError('Cannot convert "' + _embind_repr(value) + '" to char');
+          }
+          return value;
+        },
+        'argPackAdvance': 8,
+        'readValueFromPointer': integerReadValueFromPointer(name, shift, minRange !== 0),
+        destructorFunction: null, // This type does not need a destructor
+    });
+  },
+
   _embind_iterator__deps: ['$requireHandle', '_emval_register'],
   _embind_iterator_start: function(handle) {
     handle = requireHandle(handle);
