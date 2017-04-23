@@ -189,6 +189,25 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
             }
         }
 
+        impl From<Val> for Box<str> {
+            fn from(value: Val) -> Box<str> {
+                #[allow(improper_ctypes)] // pretend that I know what I'm doing
+                extern {
+                    fn _emval_get_string(value: Emval) -> Box<str>;
+                }
+
+                unsafe {
+                    _emval_get_string(value.0)
+                }
+            }
+        }
+
+        impl From<Val> for String {
+            fn from(value: Val) -> String {
+                Box::<str>::from(value).into_string()
+            }
+        }
+
         _embind_register_rust_string(inner_type_id::<&str>());
 
         struct MemoryView<T> {
@@ -372,6 +391,7 @@ mod tests {
         assert_eq!(i8::from(global.get("num")), 42);
         assert_eq!(f64::from(global.get("num")), 42f64);
         assert_eq!(u32::from(js_val!("arr[1]")), 2);
+        assert_eq!(String::from(global.get("str")), "hello, world");
         assert_eq!(u8::from(js_val!("str.charCodeAt(0)")) as char, 'h');
 
         assert_eq!(count_emval_handles(), 1);

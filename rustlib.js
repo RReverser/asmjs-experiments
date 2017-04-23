@@ -23,4 +23,12 @@ mergeInto(LibraryManager.library, {
     var next = requireHandle(handle).next();
     return next.done ? 0 : __emval_register(next.value);
   },
+
+  _emval_get_string__deps: ['$requireHandle'],
+  _emval_get_string: function(dest, handle) {
+    handle = requireHandle(handle) + '';
+    var length = HEAPU32[(dest >> 2) + 1] = lengthBytesUTF8(handle);
+    var pointer = HEAPU32[dest >> 2] = _malloc(length + 1);
+    stringToUTF8(handle, pointer, length + 1);
+  },
 });
