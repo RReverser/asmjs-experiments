@@ -68,4 +68,9 @@ mergeInto(LibraryManager.library, {
     var pointer = HEAPU32[dest] = _malloc(length + 1);
     stringToUTF8(handle, pointer, length + 1);
   },
+
+  _emval_array_push__deps: ['$requireHandle'],
+  _emval_array_push: function (destHandle, elemHandle) {
+    requireHandle(destHandle).push(requireHandle(elemHandle));
+  }
 });
