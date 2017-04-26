@@ -73,3 +73,14 @@ fn bench_serialize_to_json_and_parse(b: &mut Bencher) {
     });
     global.set("value", ());
 }
+
+#[bench]
+fn bench_parse_and_serialize_to_embind(b: &mut Bencher) {
+    let global = Val::global();
+    global.set("value", ());
+    b.iter(|| {
+        let collection: FeatureCollection = ::serde_json::from_str(JSON).unwrap();
+        global.set("value", collection.serialize(::asmjs::serializer::Serializer).unwrap());
+    });
+    global.set("value", ());
+}
