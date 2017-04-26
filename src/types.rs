@@ -59,7 +59,6 @@ macro_rules! cname {
     ($tt:tt) => (cstr!(stringify!($tt)))
 }
 
-#[link_args = "--bind --js-library rustlib.js"]
 extern {
     fn _embind_register_void(type_id: TypeId, name: CStr);
     fn _embind_register_bool(type_id: TypeId, name: CStr, size: usize, true_value: bool, false_value: bool);
