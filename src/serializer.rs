@@ -237,12 +237,12 @@ impl SerializeStructVariant for VariantSerializer<MapSerializer> {
     type Ok = Val;
     type Error = Error;
 
-    fn serialize_field<T: ?Sized + Serialize>(&mut self, key: &str, value: &T) -> Result<()> {
-        self.inner.serialize_entry(key, value)
+    fn serialize_field<T: ?Sized + Serialize>(&mut self, key: &'static str, value: &T) -> Result<()> {
+        self.inner.serialize_field(key, value)
     }
 
     fn end(self) -> Result {
-        self.end_with(SerializeMap::end)
+        self.end_with(SerializeStruct::end)
     }
 }
 
