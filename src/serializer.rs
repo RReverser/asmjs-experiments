@@ -190,6 +190,11 @@ impl SerializeMap for MapSerializer {
         Ok(())
     }
 
+    fn serialize_entry<K: ?Sized + Serialize, V: ?Sized + Serialize>(&mut self, key: &K, value: &V) -> Result<()> {
+        self.map.set(key.serialize(Serializer)?, value.serialize(Serializer)?);
+        Ok(())
+    }
+
     fn end(self) -> Result {
         Ok(self.map)
     }
