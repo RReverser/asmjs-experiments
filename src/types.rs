@@ -41,7 +41,7 @@ macro_rules! em_from_js {
             fn from(value: Val) -> $ty {
                 let mut destructors = Emdestructors::default();
                 unsafe {
-                    _emval_as(value.0, type_id::<$ty>(), &mut destructors) as _
+                    _emval_as(value.handle, type_id::<$ty>(), &mut destructors) as _
                 }
             }
         }
@@ -83,7 +83,9 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
             ($ty:ty) => {{
                 impl From<$ty> for Val {
                     fn from(_: $ty) -> Val {
-                        Val(1 as _)
+                        Val {
+                            handle: 1 as _
+                        }
                     }
                 }
 
@@ -96,13 +98,15 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
 
         impl From<bool> for Val {
             fn from(b: bool) -> Val {
-                Val(if b { 3 } else { 4 } as _)
+                Val {
+                    handle: if b { 3 } else { 4 } as _
+                }
             }
         }
 
         impl From<Val> for bool {
             fn from(value: Val) -> bool {
-                match value.0 as u32 {
+                match value.handle as u32 {
                     3 => true,
                     4 => false,
                     _ => u32::from(value) != 0
@@ -142,7 +146,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
             fn from(value: Val) -> char {
                 let mut destructors = Emdestructors::default();
                 ::std::char::from_u32(unsafe {
-                    _emval_as(value.0, type_id::<char>(), &mut destructors) as _
+                    _emval_as(value.handle, type_id::<char>(), &mut destructors) as _
                 }).unwrap()
             }
         }
@@ -172,7 +176,7 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
                 }
 
                 unsafe {
-                    _emval_get_string(value.0)
+                    _emval_get_string(value.handle)
                 }
             }
         }
@@ -218,9 +222,11 @@ pub unsafe fn type_id<T: ?Sized + 'static>() -> TypeId {
 
         impl<'a> From<&'a ::std::ffi::CStr> for Val {
             fn from(s: &'a ::std::ffi::CStr) -> Val {
-                Val(unsafe {
-                    _emval_new_cstring(s.as_ptr())
-                })
+                Val {
+                    handle: unsafe {
+                        _emval_new_cstring(s.as_ptr())
+                    }
+                }
             }
         }
     });

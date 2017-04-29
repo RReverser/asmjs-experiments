@@ -52,11 +52,15 @@ extern {
     fn _embind_iterator_next(iterator: Emval) -> Emval;
 }
 
-pub struct Val(pub Emval);
+pub struct Val {
+    pub handle: Emval
+}
 
 impl Val {
     pub unsafe fn new<RegisteredType: 'static, ActualType>(value: &ActualType) -> Self {
-        Val(_emval_take_value(type_id::<RegisteredType>(), value as *const ActualType as *const void))
+        Val {
+            handle: _emval_take_value(type_id::<RegisteredType>(), value as *const ActualType as *const void)
+        }
     }
 
     pub unsafe fn new_simple<T: 'static>(value: &T) -> Self {
@@ -64,36 +68,53 @@ impl Val {
     }
 
     pub fn array() -> Self {
-        Val(unsafe {
-            _emval_new_array()
-        })
+        Val {
+            handle: unsafe {
+                _emval_new_array()
+            }
+        }
     }
 
     pub fn object() -> Self {
-        Val(unsafe {
-            _emval_new_object()
-        })
+        Val {
+            handle: unsafe {
+                _emval_new_object()
+            }
+        }
     }
 
     pub fn null() -> Self {
-        Val(2 as _)
+        Val {
+            handle: 2 as _
+        }
     }
 
     pub fn global() -> Self {
-        Val(unsafe {
-            _emval_get_global(null())
-        })
+        Val {
+            handle: unsafe {
+                _emval_get_global(null())
+            }
+        }
     }
 
     pub fn get<P: Into<Val>>(&self, prop: P) -> Self {
-        Val(unsafe {
-            _emval_get_property(self.0, prop.into().0)
-        })
+        Val {
+            handle: unsafe {
+                _emval_get_property(
+                    self.handle,
+                    prop.into().handle
+                )
+            }
+        }
     }
 
     pub fn set<P: Into<Val>, V: Into<Val>>(&self, prop: P, value: V) {
         unsafe {
-            _emval_set_property(self.0, prop.into().0, value.into().0)
+            _emval_set_property(
+                self.handle,
+                prop.into().handle,
+                value.into().handle
+            )
         }
     }
 }
@@ -101,8 +122,8 @@ impl Val {
 impl Clone for Val {
     fn clone(&self) -> Val {
         unsafe {
-            _emval_incref(self.0);
-            Val(self.0)
+            _emval_incref(self.handle);
+            Val { handle: self.handle }
         }
     }
 }
@@ -110,7 +131,7 @@ impl Clone for Val {
 impl Drop for Val {
     fn drop(&mut self) {
         unsafe {
-            _emval_decref(self.0);
+            _emval_decref(self.handle);
         }
     }
 }
@@ -122,7 +143,9 @@ impl<'a> IntoIterator for &'a Val {
     fn into_iter(self) -> Self::IntoIter {
         EmvalIterator {
             iterator: unsafe {
-                Val(_embind_iterator_start(self.0))
+                Val {
+                    handle: _embind_iterator_start(self.handle)
+                }
             }
         }
     }
@@ -146,11 +169,11 @@ impl Iterator for EmvalIterator {
 
     fn next(&mut self) -> Option<Val> {
         unsafe {
-            let result = _embind_iterator_next(self.iterator.0);
+            let result = _embind_iterator_next(self.iterator.handle);
             if result.is_null() {
                 None
             } else {
-                Some(Val(result))
+                Some(Val { handle: result })
             }
         }
     }
@@ -158,7 +181,9 @@ impl Iterator for EmvalIterator {
 
 #[macro_export]
 macro_rules! js_val {
-    ($expr:expr $(,$arg:expr)*) => ($crate::value::Val(unsafe {
-        $crate::value::emscripten_asm_const_int(cstr!("return __emval_register(", $expr, ")") $(,$arg)*)
-    }))
+    ($expr:expr $(,$arg:expr)*) => ($crate::value::Val {
+        handle: unsafe {
+            $crate::value::emscripten_asm_const_int(cstr!("return __emval_register(", $expr, ")") $(,$arg)*)
+        }
+    })
 }

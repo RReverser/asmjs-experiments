@@ -27,5 +27,8 @@ fn test_serialize_struct() {
 
     let val = s.serialize(Serializer).unwrap();
 
-    assert_eq!(String::from(js_val!("JSON.stringify(requireHandle($0))", val.0)), r#"{"x":"hello, world","y":42,"z":[123.456,789]}"#);
+    assert_eq!(
+        String::from(js_val!("JSON.stringify(requireHandle($0))", val.handle)),
+        r#"{"x":"hello, world","y":42,"z":[123.456,789]}"#
+    );
 }

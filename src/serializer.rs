@@ -273,7 +273,7 @@ impl SerializeSeq for SeqSerializer {
         }
 
         unsafe {
-            _emval_array_push(self.seq.0, value.serialize(Serializer)?.0);
+            _emval_array_push(self.seq.handle, value.serialize(Serializer)?.handle);
         }
 
         Ok(())
