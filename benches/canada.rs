@@ -2,9 +2,6 @@
 
 include!("utils/header.rs");
 
-#[link_args = "--bind --js-library rustlib.js"]
-extern "C" {}
-
 #[derive(Serialize, Deserialize)]
 pub enum ObjType {
     FeatureCollection,
