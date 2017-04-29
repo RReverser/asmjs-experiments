@@ -27,12 +27,6 @@ impl Drop for MyStruct {
     }
 }
 
-impl Into<Val> for MyStruct {
-    fn into(self) -> Val {
-        Box::new(self).into()
-    }
-}
-
 impl Into<Val> for Box<MyStruct> {
     fn into(self) -> Val {
         unsafe {
