@@ -84,7 +84,7 @@ fn test_works() {
 
     assert_eq!(count_emval_handles(), 1);
 
-    global.set("mystruct", MyStruct { x: 42 });
+    global.set("mystruct", Box::new(MyStruct { x: 42 }));
 
     assert_eq!(count_emval_handles(), 1);
 
